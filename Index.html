@@ -1,0 +1,197 @@
+</html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volleyball Scoreboard with Live Camera</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            margin: 20px 0;
+            border: 2px solid #333;
+            overflow: hidden;
+        }
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #scoreboard {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: white;
+            text-shadow: 2px 2px 4px black;
+            pointer-events: none; /* Allow clicks through to video if needed */
+        }
+        #teams {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        #teamA, #teamB {
+            text-align: center;
+        }
+        #teamA h2, #teamB h2 {
+            margin: 0;
+        }
+        #scores {
+            display: flex;
+            justify-content: space-around;
+            font-size: 48px;
+            padding: 10px;
+        }
+        #sets {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            pointer-events: auto; /* Ensure buttons are clickable */
+        }
+        #toggleCamera {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Volleyball Scoreboard with Live Camera Option</h1>
+    <div id="container">
+        <video id="video" autoplay playsinline></video>
+        <div id="scoreboard">
+            <div id="teams">
+                <div id="teamA">
+                    <h2>Team A</h2>
+                    <div>Sets: <span id="setsA">0</span></div>
+                </div>
+                <div id="teamB">
+                    <h2>Team B</h2>
+                    <div>Sets: <span id="setsB">0</span></div>
+                </div>
+            </div>
+            <div id="scores">
+                <span id="scoreA">0</span>
+                <span>:</span>
+                <span id="scoreB">0</span>
+            </div>
+            <div id="sets"></div> <!-- Placeholder if needed -->
+        </div>
+    </div>
+    <div id="controls">
+        <button onclick="incrementScore('A')">+1 Team A</button>
+        <button onclick="decrementScore('A')">-1 Team A</button>
+        <button onclick="incrementScore('B')">+1 Team B</button>
+        <button onclick="decrementScore('B')">-1 Team B</button>
+        <button onclick="winSet('A')">Set Win A</button>
+        <button onclick="winSet('B')">Set Win B</button>
+        <button onclick="resetSet()">Reset Set</button>
+        <button onclick="resetAll()">Reset All</button>
+        <button id="toggleCamera" onclick="toggleCamera()">Start Camera</button>
+    </div>
+
+    <script>
+        let scoreA = 0;
+        let scoreB = 0;
+        let setsA = 0;
+        let setsB = 0;
+        let stream = null;
+        let cameraActive = false;
+
+        function updateDisplay() {
+            document.getElementById('scoreA').textContent = scoreA;
+            document.getElementById('scoreB').textContent = scoreB;
+            document.getElementById('setsA').textContent = setsA;
+            document.getElementById('setsB').textContent = setsB;
+        }
+
+        function incrementScore(team) {
+            if (team === 'A') scoreA++;
+            else scoreB++;
+            updateDisplay();
+        }
+
+        function decrementScore(team) {
+            if (team === 'A' && scoreA > 0) scoreA--;
+            else if (team === 'B' && scoreB > 0) scoreB--;
+            updateDisplay();
+        }
+
+        function winSet(team) {
+            if (team === 'A') setsA++;
+            else setsB++;
+            resetSet();
+        }
+
+        function resetSet() {
+            scoreA = 0;
+            scoreB = 0;
+            updateDisplay();
+        }
+
+        function resetAll() {
+            scoreA = 0;
+            scoreB = 0;
+            setsA = 0;
+            setsB = 0;
+            updateDisplay();
+        }
+
+        async function toggleCamera() {
+            const video = document.getElementById('video');
+            const button = document.getElementById('toggleCamera');
+
+            if (cameraActive) {
+                // Stop camera
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                video.srcObject = null;
+                button.textContent = 'Start Camera';
+                cameraActive = false;
+            } else {
+                // Start camera
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    button.textContent = 'Stop Camera';
+                    cameraActive = true;
+                } catch (error) {
+                    console.error('Error accessing camera:', error);
+                    alert('Could not access camera. Please ensure permissions are granted and try again.');
+                }
+            }
+        }
+
+        updateDisplay(); // Initial display
+    </script>
+</body>
+</html>
